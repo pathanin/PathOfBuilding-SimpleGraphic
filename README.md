@@ -1,5 +1,12 @@
 # Path of Building Community SimpleGraphic.dll
 
+> **macOS port:** this fork (`pathanin/PathOfBuilding-SimpleGraphic`) adds a native
+> arm64 macOS build on top of the upstream Windows-only project, for use with
+> [`pathanin/PathOfBuilding-PoE2`](https://github.com/pathanin/PathOfBuilding-PoE2).
+> It is not part of the official/upstream project. See
+> [Building on macOS](#building-on-macos) below; everything else in this document
+> describes the original Windows-targeted DLL and still applies unchanged.
+
 ## Introduction
 
 `SimpleGraphic.dll` is the host environment for Lua.
@@ -36,6 +43,56 @@ A short guide on building and debugging the DLL is available in
 
 The `INSTALL` target will deploy the DLL, its dependencies and the VC++
 runtime to the installation directory.
+
+## Building on macOS
+
+This fork adds a native arm64 macOS build, used as a drop-in replacement for the
+Windows DLL + `PathOfBuilding.exe` when running
+[`PathOfBuilding-PoE2`](https://github.com/pathanin/PathOfBuilding-PoE2) on Apple
+Silicon. It's a personal/community port, not an officially supported target.
+
+What's different from the upstream Windows build:
+- `engine/system/win/sys_video.cpp` requests ANGLE's Metal backend on `__APPLE__`
+  instead of the legacy desktop-OpenGL fallback (the two are mutually exclusive in
+  ANGLE's own macOS build, so this requires the `metal` vcpkg feature for the `osx`
+  platform in `vcpkg.json`).
+- `engine/system/win/sys_main.cpp` maps `GLFW_KEY_LEFT_SUPER`/`RIGHT_SUPER` (Cmd) to
+  `KEY_CTRL`, so the Lua UI's Ctrl-based shortcuts (copy/paste, undo, select-all,
+  tree zoom, etc.) respond to Cmd, the Mac convention. Physical Ctrl still works.
+- Various portability fixes for building under Clang/libc++ rather than MSVC
+  (missing includes, a `std::min` template-deduction fix, `Sleep()` replaced with
+  `std::this_thread::sleep_for`, LuaJIT's vcpkg port patched for a null-safe
+  `getenv`, CMake's platform-conditional sources fixed so Windows-only libs/sources
+  aren't pulled in on other platforms).
+- `macos-launcher/pob_launch.c`: a small native launcher that replaces
+  `PathOfBuilding-PoE2.exe`. It `dlopen`s `libSimpleGraphic.dylib` from its own
+  directory and calls the same `RunLuaFileAsWin` entry point, with the script path
+  as `argv[0]`. It also re-execs itself once with `DYLD_LIBRARY_PATH` set so GLFW's
+  `dlopen("libEGL.dylib")` can find the ANGLE dylibs alongside it, and points
+  `LUA_PATH`/`LUA_CPATH` at exe-relative paths (Unix LuaJIT has no equivalent of
+  Windows' `!\lua\?.lua` exe-relative default).
+
+Build steps:
+
+```sh
+cmake -B build -S . -G Ninja -DCMAKE_BUILD_TYPE=Release \
+  -DVCPKG_TARGET_TRIPLET=arm64-osx-dynamic -DVCPKG_HOST_TRIPLET=arm64-osx-dynamic \
+  -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake   # host triplet must match target
+cmake --build build
+clang -O2 -o runtime/pob-poe2 macos-launcher/pob_launch.c
+
+# Stage the outputs into the PathOfBuilding-PoE2 checkout's runtime/ directory:
+cp build/libSimpleGraphic.dylib runtime/pob-poe2 <path-to-PathOfBuilding-PoE2>/runtime/
+# Native Lua modules go in renamed to .so:
+#   liblcurl.dylib     -> lcurl.so
+#   liblzip.dylib       -> lzip.so
+#   liblua-utf8.dylib   -> lua-utf8.so
+#   libsocket.dylib     -> socket.so
+# Re-run `install_name_tool -add_rpath @loader_path` on any replaced dylib/so files.
+```
+
+Then run `<path-to-PathOfBuilding-PoE2>/runtime/pob-poe2` in place of the Windows
+executable.
 
 ## Debugging
 
