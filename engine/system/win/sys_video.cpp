@@ -115,6 +115,13 @@ sys_video_c::sys_video_c(sys_IMain* sysHnd)
 		platformType = GLFW_ANGLE_PLATFORM_TYPE_D3D11;
 	else // Native Windows
 		platformType = GLFW_ANGLE_PLATFORM_TYPE_D3D11;
+#elif defined(__APPLE__)
+	// With no explicit hint, ANGLE falls back to its legacy/deprecated desktop-OpenGL
+	// backend on macOS instead of Metal (requires angle[metal] in vcpkg.json). The GL
+	// backend doesn't expose GL_EXT_texture_compression_bptc on Apple's frozen OpenGL
+	// 4.1 implementation and logs a spurious "texture unloadable" warning on array
+	// texture binds; Metal is Apple's supported/maintained path on Apple Silicon.
+	platformType = GLFW_ANGLE_PLATFORM_TYPE_METAL;
 #endif
 	glfwInitHint(GLFW_ANGLE_PLATFORM_TYPE, platformType);
 	glfwInit();
