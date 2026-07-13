@@ -284,6 +284,15 @@ byte sys_main_c::GlfwKeyToKey(int key, int scancode) {
 		{GLFW_KEY_RIGHT_CONTROL, KEY_CTRL},
 		{GLFW_KEY_LEFT_ALT, KEY_ALT},
 		{GLFW_KEY_RIGHT_ALT, KEY_ALT},
+#ifdef __APPLE__
+		// The engine's keyboard shortcuts (copy/paste/undo/select-all/zoom/etc, scattered
+		// across the Lua UI code) are all written in terms of a single "CTRL" modifier.
+		// On macOS the platform convention for all of those is Cmd, not the physical Ctrl
+		// key, so map Cmd (GLFW's "Super" key) onto the same KEY_CTRL state. Physical Ctrl
+		// stays mapped too, so it still works for anyone using an external PC-layout keyboard.
+		{GLFW_KEY_LEFT_SUPER, KEY_CTRL},
+		{GLFW_KEY_RIGHT_SUPER, KEY_CTRL},
+#endif
 		{GLFW_KEY_PAUSE, KEY_PAUSE},
 		{GLFW_KEY_ESCAPE, KEY_ESCAPE},
 		{GLFW_KEY_SPACE, ' '},
