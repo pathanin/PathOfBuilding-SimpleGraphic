@@ -89,7 +89,7 @@ if (WIN32)
         "SimpleGraphic.rc"
     )
 else()
-    set (SIMPLEGRAPHIC_PLATFORM_SOURCES
+    list (APPEND SIMPLEGRAPHIC_PLATFORM_SOURCES
         "engine/system/win/sys_console_unix.cpp"
     )
 endif()
@@ -303,7 +303,7 @@ add_library(lua-utf8 SHARED libs/luautf8/lutf8lib.c)
 
 target_compile_definitions(lua-utf8
     PRIVATE
-    LUA_BUILD_AS_DLL
+    $<$<PLATFORM_ID:Windows>:LUA_BUILD_AS_DLL>
 )
 
 target_include_directories(lua-utf8
@@ -333,7 +333,7 @@ add_library(luasocket SHARED
    "libs/luasocket/src/tcp.c"
    "libs/luasocket/src/timeout.c"
    "libs/luasocket/src/udp.c"
-   "libs/luasocket/src/wsocket.c"
+   "$<IF:$<PLATFORM_ID:Windows>,libs/luasocket/src/wsocket.c,libs/luasocket/src/usocket.c>"
 )
 
 target_include_directories(luasocket
@@ -344,8 +344,8 @@ target_include_directories(luasocket
 target_link_libraries(luasocket
     PRIVATE
     LuaJIT::LuaJIT
-    wsock32
-    ws2_32
+    $<$<PLATFORM_ID:Windows>:wsock32>
+    $<$<PLATFORM_ID:Windows>:ws2_32>
 )
 
 set_target_properties( luasocket PROPERTIES OUTPUT_NAME "socket" ) 
