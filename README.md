@@ -79,10 +79,10 @@ cmake -B build -S . -G Ninja -DCMAKE_BUILD_TYPE=Release \
   -DVCPKG_TARGET_TRIPLET=arm64-osx-dynamic -DVCPKG_HOST_TRIPLET=arm64-osx-dynamic \
   -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake   # host triplet must match target
 cmake --build build
-clang -O2 -o runtime/pob-poe2 macos-launcher/pob_launch.c
+clang -O2 -o macos-launcher/pob-poe2 -Wl,-rpath,@loader_path macos-launcher/pob_launch.c
 
 # Stage the outputs into the PathOfBuilding-PoE2 checkout's runtime/ directory:
-cp build/libSimpleGraphic.dylib runtime/pob-poe2 <path-to-PathOfBuilding-PoE2>/runtime/
+cp build/libSimpleGraphic.dylib macos-launcher/pob-poe2 <path-to-PathOfBuilding-PoE2>/runtime/
 # Native Lua modules go in renamed to .so:
 #   liblcurl.dylib     -> lcurl.so
 #   liblzip.dylib       -> lzip.so
