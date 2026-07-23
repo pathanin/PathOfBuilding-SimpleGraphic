@@ -77,7 +77,7 @@ all:
 	done
 
 install:
-	\$(MAKE) install \$(COMMON_OPTIONS)
+	\$(MAKE) install \$(COMMON_OPTIONS) 'INSTALL_TSYMNAME=luajit-lnk'
 	for DA in \$(DASM_ARCHS); do \\
 		mkdir -p "\$\${DESTDIR}\$(BUILDVM_PREFIX)"; \\
 		install -m 0755 "src/host/buildvm-\$\$DA\$(EXECUTABLE_SUFFIX)" "\$\${DESTDIR}\$(BUILDVM_PREFIX)/buildvm-\$\$DA\$(EXECUTABLE_SUFFIX)" || exit 1 ; \\
