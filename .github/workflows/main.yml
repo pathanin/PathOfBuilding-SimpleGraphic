@@ -10,7 +10,7 @@ jobs:
       matrix:
         include:
           - platform: x64
-            os: windows-latest
+            os: windows-2022
             triplet: x64-windows
     runs-on: ${{ matrix.os }}
     env:
