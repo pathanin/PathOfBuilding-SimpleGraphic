@@ -214,10 +214,17 @@ bool find_c::FindFirst(std::filesystem::path const&& fileSpec)
 		auto candFilename = iter->path().filename();
 		if (GlobMatch(globPattern, candFilename)) {
 			fileName = candFilename;
-			isDirectory = iter->is_directory();
-			fileSize = iter->file_size();
-			auto mod = iter->last_write_time();
-			modified = mod.time_since_epoch().count();
+			// Query metadata through the error_code overloads. The throwing overloads
+			// abort whenever status() fails on an entry, and outside of Windows (where
+			// file_size() reports the cached 0 for directories) file_size() always fails
+			// on a directory, which would take down every search over a folder tree.
+			std::error_code entEc;
+			isDirectory = iter->is_directory(entEc);
+			fileSize = isDirectory ? 0 : iter->file_size(entEc);
+			auto mod = iter->last_write_time(entEc);
+			// A failed query yields file_time_type::min(), whose negative count would
+			// wrap to a huge timestamp and sort the entry to the top of "Last Edited".
+			modified = entEc ? 0 : mod.time_since_epoch().count();
 			return true;
 		}
 	}
@@ -234,10 +241,17 @@ bool find_c::FindNext()
 		auto candFilename = iter->path().filename();
 		if (GlobMatch(globPattern, candFilename)) {
 			fileName = candFilename;
-			isDirectory = iter->is_directory();
-			fileSize = iter->file_size();
-			auto mod = iter->last_write_time();
-			modified = mod.time_since_epoch().count();
+			// Query metadata through the error_code overloads. The throwing overloads
+			// abort whenever status() fails on an entry, and outside of Windows (where
+			// file_size() reports the cached 0 for directories) file_size() always fails
+			// on a directory, which would take down every search over a folder tree.
+			std::error_code entEc;
+			isDirectory = iter->is_directory(entEc);
+			fileSize = isDirectory ? 0 : iter->file_size(entEc);
+			auto mod = iter->last_write_time(entEc);
+			// A failed query yields file_time_type::min(), whose negative count would
+			// wrap to a huge timestamp and sort the entry to the top of "Last Edited".
+			modified = entEc ? 0 : mod.time_since_epoch().count();
 			return true;
 		}
 	}
