@@ -306,12 +306,12 @@ r_tex_c::r_tex_c(r_ITexManager* manager, std::string_view fileName, int flags)
 	}
 }
 
-r_tex_c::r_tex_c(r_ITexManager* manager, std::unique_ptr<image_c> img, int flags)
+r_tex_c::r_tex_c(r_ITexManager* manager, std::unique_ptr<image_c> newImg, int flags)
 {
 	Init(manager, {}, flags);
 
-	// Direct upload
-	img = BuildMipSet(std::move(img));
+	// Direct upload.
+	img = BuildMipSet(std::move(newImg));
 	PerformUpload(this);
 }
 
