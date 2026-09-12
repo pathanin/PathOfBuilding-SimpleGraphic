@@ -8,16 +8,19 @@
       "features": [ "metal" ],
       "platform": "osx"
     },
+    "cmakerc",
     "curl",
     "fmt",
     "glfw3",
     "gli",
+    "glm",
     "libwebp",
     "luajit",
     "ms-gsl",
     "pkgconf",
     "re2",
     "sol2",
+    "xxhash",
     "zstd",
     "zlib"
   ]
